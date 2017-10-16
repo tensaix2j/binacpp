@@ -16,7 +16,7 @@ struct lws_protocols BinaCPP_websocket::protocols[] =
 	{ NULL, NULL, 0, 0 } /* terminator */
 };
 
-int (*user_cb)( Json::Value json_result ) = NULL;
+int (*BinaCPP_websocket::user_cb)( Json::Value &json_result ) = NULL;
 
 
 

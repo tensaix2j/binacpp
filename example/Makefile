@@ -21,7 +21,8 @@ libbinacpp_lib=${libbinacpp_dir}/lib
 
 
 
-example: 
+%: %.cpp
+	@echo -n "\nMaking $@\n\n\n"
 	g++ -I$(libcurl_include) -I$(jsoncpp_include) -I$(libwebsockets_include) -I$(libbinacpp_include) \
 	$@.cpp \
 	-L$(libcurl_lib) \
@@ -32,15 +33,4 @@ example:
 	cat run.template.sh  | sed s/%executable%/$@/ > $@.run.sh
 	chmod 755 $@.run.sh
 
-
-example_martingale: 
-	g++ -I$(libcurl_include) -I$(jsoncpp_include) -I$(libwebsockets_include) -I$(libbinacpp_include) \
-	$@.cpp \
-	-L$(libcurl_lib) \
-	-L$(libwebsockets_lib) \
-	-L$(libbinacpp_lib) \
-	-lcurl -lcrypto -lwebsockets -lbinacpp -o $@
-
-	cat run.template.sh  | sed s/%executable%/$@/ > $@.run.sh
-	chmod 755 $@.run.sh
 
