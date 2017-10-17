@@ -4,7 +4,8 @@
 #include "binacpp_logger.h"
 
 
-struct lws *BinaCPP_websocket::ws_handle = NULL;
+
+struct lws_context *BinaCPP_websocket::context = NULL;
 struct lws_protocols BinaCPP_websocket::protocols[] =
 {
 	{
@@ -16,7 +17,7 @@ struct lws_protocols BinaCPP_websocket::protocols[] =
 	{ NULL, NULL, 0, 0 } /* terminator */
 };
 
-int (*BinaCPP_websocket::user_cb)( Json::Value &json_result ) = NULL;
+map <struct lws *,CB> BinaCPP_websocket::handles ;
 
 
 
@@ -35,12 +36,16 @@ BinaCPP_websocket::event_cb( struct lws *wsi, enum lws_callback_reasons reason, 
 			
 			/* Handle incomming messages here. */
 			try {
+
+				//BinaCPP_logger::write_log("%p %s",  wsi, (char *)in );
+
 				string str_result = string( (char*)in );
 				Json::Reader reader;
 				Json::Value json_result;	
 				reader.parse( str_result , json_result );
-				if ( user_cb != NULL ) {
-					user_cb( json_result );
+
+				if ( handles.find( wsi ) != handles.end() ) {
+					handles[wsi]( json_result );
 				}
 
 			} catch ( exception &e ) {
@@ -55,7 +60,9 @@ BinaCPP_websocket::event_cb( struct lws *wsi, enum lws_callback_reasons reason, 
 
 		case LWS_CALLBACK_CLOSED:
 		case LWS_CALLBACK_CLIENT_CONNECTION_ERROR:
-			BinaCPP_websocket::ws_handle = NULL;
+			if ( handles.find( wsi ) != handles.end() ) {
+				handles.erase(wsi);
+			}
 			break;
 
 		default:
@@ -66,15 +73,9 @@ BinaCPP_websocket::event_cb( struct lws *wsi, enum lws_callback_reasons reason, 
 }
 
 
-
-//----------------------------
-void
-BinaCPP_websocket::init ( 
-
-		int (*cb)(Json::Value &json_result),
-		const char *path
-
-	) 
+//-------------------
+void 
+BinaCPP_websocket::init( ) 
 {
 	struct lws_context_creation_info info;
 	memset( &info, 0, sizeof(info) );
@@ -85,13 +86,24 @@ BinaCPP_websocket::init (
 	info.uid = -1;
 	info.options |= LWS_SERVER_OPTION_DO_SSL_GLOBAL_INIT;
 
-	struct lws_context *context = lws_create_context( &info );
+	context = lws_create_context( &info );
+}
 
+
+//----------------------------
+// Register call backs
+void
+BinaCPP_websocket::connect_endpoint ( 
+
+		CB cb,
+		const char *path
+
+	) 
+{
 	char ws_path[1024];
 	strcpy( ws_path, path );
-	user_cb = cb;
-
-
+	
+	
 	/* Connect if we are not connected to the server. */
 	struct lws_client_connect_info ccinfo = {0};
 	ccinfo.context 	= context;
@@ -103,18 +115,27 @@ BinaCPP_websocket::init (
 	ccinfo.protocol = protocols[0].name;
 	ccinfo.ssl_connection = LCCSCF_USE_SSL | LCCSCF_ALLOW_SELFSIGNED | LCCSCF_SKIP_SERVER_CERT_HOSTNAME_CHECK;
 
-	ws_handle = lws_client_connect_via_info(&ccinfo);
-	
+	struct lws* conn = lws_client_connect_via_info(&ccinfo);
+	handles[conn] = cb;
 
-	time_t old = 0;
+
+}
+
+
+//----------------------------
+// Entering event loop
+void 
+BinaCPP_websocket::enter_event_loop() 
+{
 	while( 1 )
-	{
-		if( !ws_handle ) {
-			ws_handle = lws_client_connect_via_info(&ccinfo);
-		}	
-		lws_service( context, 500 );
+	{	
+		try {	
+			lws_service( context, 500 );
+		} catch ( exception &e ) {
+		 	BinaCPP_logger::write_log( "<BinaCPP_websocket::enter_event_loop> Error ! %s", e.what() ); 
+		 	break;
+		}
 	}
-
 	lws_context_destroy( context );
 }
 

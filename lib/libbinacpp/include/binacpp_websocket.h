@@ -22,18 +22,25 @@
 
 using namespace std;
 
+typedef int (*CB)(Json::Value &json_value );
+
+
 class BinaCPP_websocket {
 
 
-	static struct lws 			*ws_handle ;
+	static struct lws_context *context;
 	static struct lws_protocols protocols[]; 
-	static int (*user_cb)( Json::Value &json_result );
 
+	static map <struct lws *,CB> handles ;
+	
 	public:
 		static int  event_cb( struct lws *wsi, enum lws_callback_reasons reason, void *user, void *in, size_t len );
-		static void init(
-			int (*user_cb)( Json::Value &json_result ),
+		static void connect_endpoint(
+			CB user_cb,
 			const char* path
 		);
+		static void init();
+		static void enter_event_loop();
+
 
 };
