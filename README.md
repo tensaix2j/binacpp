@@ -193,7 +193,7 @@ You can refer to the following Makefile to get a better picture...
 
 ---
 
-### Websockets Endpoints ###
+### Websocket Endpoints ###
 
 
 #### Example: Maintain Market Depth Cache Locally via Web Socket
@@ -226,6 +226,8 @@ You can refer to the following Makefile to get a better picture...
 	BinaCPP_websocket::connect_endpoint( ws_depth_onData ,"/ws/bnbbtc@depth" ); 
  		
 	BinaCPP_websocket::enter_event_loop(); 
+
+[example.cpp](https://github.com/tensaix2j/binacpp/blob/master/example/example.cpp)
 
 	
 
