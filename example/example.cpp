@@ -8,13 +8,16 @@
 #include "binacpp_websocket.h"
 #include <json/json.h>
 
-#define API_KEY 		"api key goes here"
-#define SECRET_KEY		"your secret key goes here"
+#define API_KEY 		"TAB0dFqsqGlAcnTdYc4oVhls8psbqHH19m65bBzSvFYep3G37VjeZRuHjgFCJmcR"
+#define SECRET_KEY		"id1g1Mm03xLmNefvXXC99mVv6nX335T0bTFfAOzH85hLBQBsSIr6rYuEoujS7pDk"
+
+
 
 
 using namespace std;
 
 map < string, map <double,double> >  depthCache;
+int lastUpdateId = 0;
 
 
 
@@ -33,13 +36,13 @@ void print_depthCache() {
 
 	for ( it_i = depthCache.begin() ; it_i != depthCache.end() ; it_i++ ) {
 			
-		string symbol = (*it_i).first ;
-		cout << "Symbol " << symbol << endl ;
+		string bid_or_ask = (*it_i).first ;
+		cout << bid_or_ask << endl ;
 		cout << "Price             Qty" << endl ;		
 
-		map <double,double>::iterator it_j;
+		map <double,double>::reverse_iterator it_j;
 
-		for ( it_j = depthCache[symbol].begin() ; it_j != depthCache[symbol].end() ; it_j++ ) {
+		for ( it_j = depthCache[bid_or_ask].rbegin() ; it_j != depthCache[bid_or_ask].rend() ; it_j++ ) {
 
 			double price = (*it_j).first;
 			double qty   = (*it_j).second;
@@ -51,39 +54,64 @@ void print_depthCache() {
 
 
 //-------------
-int ws_aggTrade_onData( Json::Value &json_result ) {
+int ws_depth_onData( Json::Value &json_result ) {
+	
 	/*
 	{
-		"e": "aggTrade",		// event type
-		"E": 1499405254326,		// event time
-		"s": "ETHBTC",			// symbol
-		"a": 70232,				// aggregated tradeid
-		"p": "0.10281118",		// price
-		"q": "8.15632997",		// quantity
-		"f": 77489,				// first breakdown trade id
-		"l": 77489,				// last breakdown trade id
-		"T": 1499405254324,		// trade time
-		"m": false,				// whehter buyer is a maker
-		"M": true				// can be ignore
-	}
-	*/
-	cout << json_result << endl;
-
-	string symbol 		= json_result["s"].asString();
-	double price  		= atof( json_result["p"].asString().c_str() );
-	double qty    		= atof( json_result["q"].asString().c_str() );
-	bool ismaker		= json_result["m"].asBool();
-
-	if ( ismaker ) {
-		if ( depthCache.find( symbol ) != depthCache.end() && depthCache[symbol].find( price ) != depthCache[symbol].end()  ) {
-			depthCache[symbol][price] += qty;
-		} else {
-			depthCache[symbol][price] = qty;
+			"e": "depthUpdate",						// event type
+			"E": 1499404630606, 					// event time
+			"s": "ETHBTC", 							// symbol
+			"u": 7913455, 							// updateId to sync up with updateid in /api/v1/depth
+			"b": [									// bid depth delta
+				[
+					"0.10376590", 					// price (need to upate the quantity on this price)
+					"59.15767010", 					// quantity
+					[]								// can be ignored
+				],
+			],
+			"a": [									// ask depth delta
+				[
+					"0.10376586", 					// price (need to upate the quantity on this price)
+					"159.15767010", 				// quantity
+					[]								// can be ignored
+				],
+				[
+					"0.10383109",
+					"345.86845230",
+					[]
+				],
+				[
+					"0.10490700",
+					"0.00000000", 					//quantitiy=0 means remove this level
+					[]
+				]
+			]
 		}
-	} else {
-		if ( depthCache.find( symbol ) != depthCache.end() && depthCache[symbol].find( price ) != depthCache[symbol].end()  ) {
-			depthCache[symbol][price] -= qty;
+	*/	
+	
+	int i;
+
+	int new_updateId  	= json_result["u"].asInt();
+	if ( new_updateId > lastUpdateId ) {
+		for ( i = 0 ; i < json_result["b"].size() ; i++ ) {
+			double price = atof( json_result["b"][i][0].asString().c_str());
+			double qty 	 = atof( json_result["b"][i][1].asString().c_str());
+			if ( qty == 0.0 ) {
+				depthCache["bids"].erase(price);
+			} else {
+				depthCache["bids"][price] = qty;
+			}
 		}
+		for ( i = 0 ; i < json_result["a"].size() ; i++ ) {
+			double price = atof( json_result["a"][i][0].asString().c_str());
+			double qty 	 = atof( json_result["a"][i][1].asString().c_str());
+			if ( qty == 0.0 ) {
+				depthCache["asks"].erase(price);
+			} else {
+				depthCache["asks"][price] = qty;
+			}
+		}		
+		lastUpdateId = new_updateId;
 	}
 	print_depthCache();
 }
@@ -112,7 +140,7 @@ int ws_aggTrade_onData( Json::Value &json_result ) {
 int main() {
 
 
-	string api_key = API_KEY;
+	string api_key 		= API_KEY;
 	string secret_key = SECRET_KEY;
 	BinaCPP::init( api_key , secret_key );
 
@@ -145,7 +173,7 @@ int main() {
 	//*/
 
 
-	
+	/*
 	// -------------------------------------------------------------
 	// Example: Get Account 
 	BinaCPP::get_account( recvWindow , result );
@@ -258,11 +286,7 @@ int main() {
 	*/
 
 	/*-------------------------------------------------------------
-	/*
-	// Example: Get Market Depth via WebSocket
-	BinaCPP_websocket::init( ws_onData ,"/ws/ethbtc@depth" ); 
-	*/
-
+	
 
 	/*-------------------------------------------------------------
 	/*
@@ -281,6 +305,32 @@ int main() {
 	// Example: Maintain Market Depth Cache Locally via WebSocket
 	BinaCPP_websocket::init( ws_aggTrade_onData ,"/ws/ethbtc@aggTrade" ); 
 	*/			
+
+
+
+	// Example: Get Market Depth via WebSocket
+	int i;
+	string symbol = "BNBBTC";
+	BinaCPP::get_depth( symbol.c_str(), 20, result ) ;
+	for ( int i = 0 ; i < result["asks"].size(); i++ ) {
+
+		double price = atof( result["asks"][i][0].asString().c_str() );
+		double qty   = atof( result["asks"][i][1].asString().c_str() );
+		depthCache["asks"][price] = qty;
+
+	}
+	for  ( int i = 0 ; i < result["bids"].size() ; i++ ) {
+
+		double price = atof( result["bids"][i][0].asString().c_str() );
+		double qty   = atof( result["bids"][i][1].asString().c_str() );
+		depthCache["bids"][price] = qty;
+	}
+ 	lastUpdateId = result["lastUpdateId"].asInt();
+
+ 	print_depthCache();
+ 	BinaCPP_websocket::init( ws_depth_onData ,"/ws/bnbbtc@depth" ); 
+
+
 	
 
 	return 0;
