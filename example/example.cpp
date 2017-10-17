@@ -308,7 +308,8 @@ int main() {
 
 
 
-	// Example: Get Market Depth via WebSocket
+	// Get Market Depth via http first
+	 	
 	int i;
 	string symbol = "BNBBTC";
 	BinaCPP::get_depth( symbol.c_str(), 20, result ) ;
@@ -328,6 +329,9 @@ int main() {
  	lastUpdateId = result["lastUpdateId"].asInt();
 
  	print_depthCache();
+ 	
+ 	
+ 	// and then update Market Depth via WebSocket
  	BinaCPP_websocket::init( ws_depth_onData ,"/ws/bnbbtc@depth" ); 
 
 

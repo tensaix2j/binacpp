@@ -300,7 +300,8 @@ You can refer to the following Makefile to get a better picture...
 		BinaCPP::init( api_key , secret_key );
 
 
-		// Example: Get Market Depth via WebSocket
+		// Get Market Depth via http first
+		
 		int i;
 		string symbol = "BNBBTC";
 		BinaCPP::get_depth( symbol.c_str(), 20, result ) ;
@@ -320,6 +321,9 @@ You can refer to the following Makefile to get a better picture...
 	 	lastUpdateId = result["lastUpdateId"].asInt();
 
 	 	print_depthCache();
+
+	 	// and then update Market Depth via WebSocket
+ 		
 	 	BinaCPP_websocket::init( ws_depth_onData ,"/ws/bnbbtc@depth" ); 
 
 
