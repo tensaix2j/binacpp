@@ -264,39 +264,6 @@ You can refer to the following Makefile to get a better picture...
 	
 	int ws_depth_onData( Json::Value &json_result ) {
 		
-		/*
-		{
-				"e": "depthUpdate",						// event type
-				"E": 1499404630606, 					// event time
-				"s": "ETHBTC", 							// symbol
-				"u": 7913455, 							// updateId to sync up with updateid in /api/v1/depth
-				"b": [									// bid depth delta
-					[
-						"0.10376590", 					// price (need to upate the quantity on this price)
-						"59.15767010", 					// quantity
-						[]								// can be ignored
-					],
-				],
-				"a": [									// ask depth delta
-					[
-						"0.10376586", 					// price (need to upate the quantity on this price)
-						"159.15767010", 				// quantity
-						[]								// can be ignored
-					],
-					[
-						"0.10383109",
-						"345.86845230",
-						[]
-					],
-					[
-						"0.10490700",
-						"0.00000000", 					//quantitiy=0 means remove this level
-						[]
-					]
-				]
-			}
-		*/	
-		
 		int i;
 
 		int new_updateId  	= json_result["u"].asInt();
