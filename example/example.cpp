@@ -8,8 +8,8 @@
 #include "binacpp_websocket.h"
 #include <json/json.h>
 
-#define API_KEY 		"TAB0dFqsqGlAcnTdYc4oVhls8psbqHH19m65bBzSvFYep3G37VjeZRuHjgFCJmcR"
-#define SECRET_KEY		"id1g1Mm03xLmNefvXXC99mVv6nX335T0bTFfAOzH85hLBQBsSIr6rYuEoujS7pDk"
+#define API_KEY 		"api key"
+#define SECRET_KEY		"secret key"
 
 
 
