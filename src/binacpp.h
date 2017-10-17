@@ -44,8 +44,14 @@ class BinaCPP {
 
 
 		// Public API
+		static void get_serverTime( Json::Value &json_result); 	
+
 		static void get_allPrices( Json::Value &json_result );
+		static double get_price( const char *symbol );
+
 		static void get_allBookTickers( Json::Value &json_result );
+		static void get_bookTicker( const char *symbol, Json::Value &json_result ) ;
+
 		static void get_depth( const char *symbol, int limit, Json::Value &json_result );
 		static void get_aggTrades( const char *symbol, int fromId, time_t startTime, time_t endTime, int limit, Json::Value &json_result ); 
 		static void get_24hr( const char *symbol, Json::Value &json_result ); 
@@ -53,9 +59,32 @@ class BinaCPP {
 
 
 		// API + Secret keys required
-		static void get_account( Json::Value &json_result );
-		static void get_myTrades( const char *symbol, Json::Value &json_result );
-		static void get_allOrders(   const char *symbol,  Json::Value &json_result );
+		static void get_account( long recvWindow , Json::Value &json_result );
+		
+		static void get_myTrades( 
+			const char *symbol, 
+			int limit,
+			long fromId,
+			long recvWindow, 
+			Json::Value &json_result 
+		);
+		
+		static void get_openOrders(  
+			const char *symbol, 
+			long recvWindow,   
+			Json::Value &json_result 
+		) ;
+		
+
+		static void get_allOrders(   
+			const char *symbol, 
+			long orderId,
+			int limit,
+			long recvWindow,
+			Json::Value &json_result 
+		);
+
+
 		static void send_order( 
 			const char *symbol, 
 			const char *side,
@@ -63,12 +92,29 @@ class BinaCPP {
 			const char *timeInForce,
 			double quantity,
 			double price,
+			const char *newClientOrderId,
+			double stopPrice,
+			double icebergQty,
 			long recvWindow,
 			Json::Value &json_result ) ;
+
+
 		static void get_order( 
 			const char *symbol, 
 			long orderId,
+			const char *origClientOrderId,
+			long recvWindow,
 			Json::Value &json_result ); 
+
+
+		static void cancel_order( 
+			const char *symbol, 
+			long orderId,
+			const char *origClientOrderId,
+			const char *newClientOrderId,
+			long recvWindow,
+			Json::Value &json_result 
+		);
 
 		// API key required
 		static void start_userDataStream( Json::Value &json_result );

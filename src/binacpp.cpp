@@ -35,11 +35,44 @@ BinaCPP::init( string &api_key, string &secret_key )
 
 
 
+//------------------
+//GET /api/v1/time
+//------------
+void 
+BinaCPP::get_serverTime( Json::Value &json_result) 
+{
+	BinaCPP_logger::write_log( "<BinaCPP::get_serverTime>" ) ;
+
+	string url(BINANCE_HOST);  
+	url += "/api/v1/time";
+
+	string str_result;
+	curl_api( url, str_result ) ;
+
+	if ( str_result.size() > 0 ) {
+		
+		try {
+			Json::Reader reader;
+			json_result.clear();	
+			reader.parse( str_result , json_result );
+	    		
+		} catch ( exception &e ) {
+		 	BinaCPP_logger::write_log( "<BinaCPP::get_serverTime> Error ! %s", e.what() ); 
+		}   
+		BinaCPP_logger::write_log( "<BinaCPP::get_serverTime> Done." ) ;
+	
+	} else {
+		BinaCPP_logger::write_log( "<BinaCPP::get_serverTime> Failed to get anything." ) ;
+	}
+}
 
 
 
 //--------------------
 // Get Latest price for all symbols.
+/*
+	GET /api/v1/ticker/allPrices
+*/
 void 
 BinaCPP::get_allPrices( Json::Value &json_result ) 
 {	
@@ -70,10 +103,38 @@ BinaCPP::get_allPrices( Json::Value &json_result )
 }
 
 
+//----------
+// Get Single Pair's Price
+double
+BinaCPP::get_price( const char *symbol )
+{
+	BinaCPP_logger::write_log( "<BinaCPP::get_price>" ) ;
+
+	double ret = 0.0;
+	Json::Value alltickers;
+	string str_symbol = string_toupper(symbol);
+	get_allPrices( alltickers );
+
+	for ( int i = 0 ; i < alltickers.size() ; i++ ) {
+		if ( alltickers[i]["symbol"].asString() == str_symbol ) {
+			ret = atof( alltickers[i]["price"].asString().c_str() );
+			break;
+		}
+		
+	}	
+	return ret;
+}
+
+
+
 
 
 //--------------------
 // Get Best price/qty on the order book for all symbols.
+/*
+	GET /api/v1/ticker/allBookTickers
+	
+*/
 
 void 
 BinaCPP::get_allBookTickers(  Json::Value &json_result ) 
@@ -106,14 +167,45 @@ BinaCPP::get_allBookTickers(  Json::Value &json_result )
 
 
 
+//--------------
+void 
+BinaCPP::get_bookTicker( const char *symbol, Json::Value &json_result ) 
+{
+	BinaCPP_logger::write_log( "<BinaCPP::get_BookTickers>" ) ;
 
+	Json::Value alltickers;
+	string str_symbol = string_toupper(symbol);
+	get_allBookTickers( alltickers );
+
+	for ( int i = 0 ; i < alltickers.size() ; i++ ) {
+		if ( alltickers[i]["symbol"].asString() == str_symbol ) {
+			
+			json_result = alltickers[i];
+			
+			break;
+		}
+		
+	}		
+}
 
 
 
 //--------------------
 // Get Market Depth
+/*
+GET /api/v1/depth
+
+Name	Type	Mandatory	Description
+symbol	STRING	YES	
+limit	INT		NO	Default 100; max 100.
+
+*/
+
 void 
-BinaCPP::get_depth( const char *symbol, int limit, Json::Value &json_result ) 
+BinaCPP::get_depth( 
+	const char *symbol, 
+	int limit, 
+	Json::Value &json_result ) 
 {	
 
 	BinaCPP_logger::write_log( "<BinaCPP::get_depth>" ) ;
@@ -158,6 +250,9 @@ BinaCPP::get_depth( const char *symbol, int limit, Json::Value &json_result )
 //--------------------
 // Get Aggregated Trades list
 /*
+
+GET /api/v1/aggTrades
+
 Name		Type	Mandatory	Description
 symbol		STRING	YES	
 fromId		LONG	NO		ID to get aggregate trades from INCLUSIVE.
@@ -167,7 +262,14 @@ limit		INT	NO		Default 500; max 500.
 */
 
 void 
-BinaCPP::get_aggTrades( const char *symbol, int fromId, time_t startTime, time_t endTime, int limit, Json::Value &json_result ) 
+BinaCPP::get_aggTrades( 
+	const char *symbol, 
+	int fromId, 
+	time_t startTime, 
+	time_t endTime, 
+	int limit, 
+	Json::Value &json_result 
+) 
 {	
 
 	BinaCPP_logger::write_log( "<BinaCPP::get_aggTrades>" ) ;
@@ -277,18 +379,25 @@ BinaCPP::get_24hr( const char *symbol, Json::Value &json_result )
 /*
 
 Get KLines( Candle stick / OHLC )
+GET /api/v1/klines
 
 Name		Type	Mandatory	Description
 symbol		STRING	YES	
 interval	ENUM	YES	
-limit		INT	NO	Default 500; max 500.
+limit		INT		NO	Default 500; max 500.
 startTime	LONG	NO	
 endTime		LONG	NO	
 
 */
 
 void 
-BinaCPP::get_klines( const char *symbol, const char *interval, int limit, time_t startTime, time_t endTime,  Json::Value &json_result ) 
+BinaCPP::get_klines( 
+	const char *symbol, 
+	const char *interval, 
+	int limit, 
+	time_t startTime, 
+	time_t endTime,  
+	Json::Value &json_result ) 
 {		
 
 	BinaCPP_logger::write_log( "<BinaCPP::get_klines>" ) ;
@@ -302,7 +411,7 @@ BinaCPP::get_klines( const char *symbol, const char *interval, int limit, time_t
 	querystring.append( "&interval=" );
 	querystring.append( interval );
 
-	if ( startTime != 0 && endTime != 0 ) {
+	if ( startTime > 0 && endTime > 0 ) {
 
 		querystring.append("&startTime=");
 		querystring.append( to_string( startTime ) );
@@ -310,7 +419,7 @@ BinaCPP::get_klines( const char *symbol, const char *interval, int limit, time_t
 		querystring.append("&endTime=");
 		querystring.append( to_string( endTime ) );
 	
-	} else {
+	} else if ( limit > 0 ) {
 		querystring.append("&limit=");
 		querystring.append( to_string( limit ) );
 	}
@@ -355,6 +464,8 @@ BinaCPP::get_klines( const char *symbol, const char *interval, int limit, time_t
 //--------------------
 // Get current account information. (SIGNED)
 /*
+GET /api/v3/account
+
 Parameters:
 Name		Type	Mandatory	Description
 recvWindow	LONG	NO	
@@ -363,7 +474,7 @@ timestamp	LONG	YES
 
 
 void 
-BinaCPP::get_account(  Json::Value &json_result ) 
+BinaCPP::get_account( long recvWindow,  Json::Value &json_result ) 
 {	
 
 	BinaCPP_logger::write_log( "<BinaCPP::get_account>" ) ;
@@ -376,9 +487,16 @@ BinaCPP::get_account(  Json::Value &json_result )
 
 	string url(BINANCE_HOST);
 	url += "/api/v3/account?";
+	string action = "GET";
+	
 
 	string querystring("timestamp=");
 	querystring.append( to_string( get_current_ms_epoch() ) );
+
+	if ( recvWindow > 0 ) {
+		querystring.append("&recvWindow=");
+		querystring.append( to_string( recvWindow ) );
+	}
 
 	string signature =  hmac_sha256( secret_key.c_str() , querystring.c_str() );
 	querystring.append( "&signature=");
@@ -392,7 +510,6 @@ BinaCPP::get_account(  Json::Value &json_result )
 
 	BinaCPP_logger::write_log( "<BinaCPP::get_account> url = |%s|" , url.c_str() ) ;
 	
-	string action = "GET";
 	string post_data = "";
 	
 	string str_result;
@@ -429,9 +546,10 @@ BinaCPP::get_account(  Json::Value &json_result )
 //--------------------
 // Get trades for a specific account and symbol. (SIGNED)
 /*
+GET /api/v3/myTrades
 Name		Type	Mandatory	Description
 symbol		STRING	YES	
-limit		INT	NO	Default 500; max 500.
+limit		INT		NO	Default 500; max 500.
 fromId		LONG	NO	TradeId to fetch from. Default gets most recent trades.
 recvWindow	LONG	NO	
 timestamp	LONG	YES
@@ -440,7 +558,12 @@ timestamp	LONG	YES
 
 
 void 
-BinaCPP::get_myTrades( const char *symbol, Json::Value &json_result ) 
+BinaCPP::get_myTrades( 
+	const char *symbol,
+	int limit,
+	long fromId,
+	long recvWindow, 
+	Json::Value &json_result ) 
 {	
 
 	BinaCPP_logger::write_log( "<BinaCPP::get_myTrades>" ) ;
@@ -456,6 +579,22 @@ BinaCPP::get_myTrades( const char *symbol, Json::Value &json_result )
 
 	string querystring("symbol=");
 	querystring.append( symbol );
+
+	if ( limit > 0 ) {
+		querystring.append("&limit=");
+		querystring.append( to_string( limit ) );
+	}
+
+	if ( fromId > 0 ) {
+		querystring.append("&fromId=");
+		querystring.append( to_string( fromId ) );
+	}
+
+	if ( recvWindow > 0 ) {
+		querystring.append("&recvWindow=");
+		querystring.append( to_string( recvWindow ) );
+	}
+
 	querystring.append("&timestamp=");
 	querystring.append( to_string( get_current_ms_epoch() ) );
 
@@ -505,19 +644,130 @@ BinaCPP::get_myTrades( const char *symbol, Json::Value &json_result )
 
 
 
+
+
+
 //--------------------
-// All Orders (SIGNED)
+// Open Orders (SIGNED)
 /*
+GET /api/v3/openOrders
+
 Name		Type	Mandatory	Description
 symbol		STRING	YES	
-orderId		LONG	NO	
-limit		INT	NO		Default 500; max 500.
 recvWindow	LONG	NO	
 timestamp	LONG	YES	
 */
 
 void 
-BinaCPP::get_allOrders( const char *symbol, Json::Value &json_result ) 
+BinaCPP::get_openOrders( 
+	const char *symbol, 
+	long recvWindow,  
+	Json::Value &json_result 
+) 
+{	
+
+	BinaCPP_logger::write_log( "<BinaCPP::get_openOrders>" ) ;
+
+	if ( api_key.size() == 0 || secret_key.size() == 0 ) {
+		BinaCPP_logger::write_log( "<BinaCPP::get_openOrders> API Key and Secret Key has not been set." ) ;
+		return ;
+	}
+
+
+	string url(BINANCE_HOST);
+	url += "/api/v3/openOrders?";
+
+	string querystring("symbol=");
+	querystring.append( symbol );
+
+	if ( recvWindow > 0 ) {
+		querystring.append("&recvWindow=");
+		querystring.append( to_string( recvWindow) );
+	}
+
+
+	querystring.append("&timestamp=");
+	querystring.append( to_string( get_current_ms_epoch() ) );
+
+
+	string signature =  hmac_sha256( secret_key.c_str(), querystring.c_str() );
+	querystring.append( "&signature=");
+	querystring.append( signature );
+
+	url.append( querystring );
+	vector <string> extra_http_header;
+	string header_chunk("X-MBX-APIKEY: ");
+	header_chunk.append( api_key );
+	extra_http_header.push_back(header_chunk);
+
+	
+	string action = "GET";
+	string post_data ="";
+		
+	BinaCPP_logger::write_log( "<BinaCPP::get_openOrders> url = |%s|" , url.c_str() ) ;
+	
+	string str_result;
+	curl_api_with_header( url, str_result , extra_http_header, post_data , action ) ;
+
+
+	if ( str_result.size() > 0 ) {
+		
+		try {
+			Json::Reader reader;
+			json_result.clear();	
+			reader.parse( str_result , json_result );
+	    		
+	    	} catch ( exception &e ) {
+		 	BinaCPP_logger::write_log( "<BinaCPP::get_openOrders> Error ! %s", e.what() ); 
+		}   
+		BinaCPP_logger::write_log( "<BinaCPP::get_openOrders> Done." ) ;
+	
+	} else {
+		BinaCPP_logger::write_log( "<BinaCPP::get_openOrders> Failed to get anything." ) ;
+	}
+	
+	BinaCPP_logger::write_log( "<BinaCPP::get_openOrders> Done.\n" ) ;
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+//--------------------
+// All Orders (SIGNED)
+/*
+GET /api/v3/allOrders
+
+Name		Type	Mandatory	Description
+symbol		STRING	YES	
+orderId		LONG	NO	
+limit		INT		NO		Default 500; max 500.
+recvWindow	LONG	NO	
+timestamp	LONG	YES	
+*/
+
+void 
+BinaCPP::get_allOrders( 
+	const char *symbol, 
+	long orderId,
+	int limit,
+	long recvWindow,
+	Json::Value &json_result 
+) 
+
 {	
 
 	BinaCPP_logger::write_log( "<BinaCPP::get_allOrders>" ) ;
@@ -533,6 +783,22 @@ BinaCPP::get_allOrders( const char *symbol, Json::Value &json_result )
 
 	string querystring("symbol=");
 	querystring.append( symbol );
+
+	if ( orderId > 0 ) {
+		querystring.append("&orderId=");
+		querystring.append( to_string( orderId ) );
+	}
+
+	if ( limit > 0 ) {
+		querystring.append("&limit=");
+		querystring.append( to_string( limit ) );
+	}
+
+	if ( recvWindow > 0 ) {
+		querystring.append("&recvWindow=");
+		querystring.append( to_string( recvWindow ) );
+	}
+
 
 	querystring.append("&timestamp=");
 	querystring.append( to_string( get_current_ms_epoch() ) );
@@ -582,19 +848,20 @@ BinaCPP::get_allOrders( const char *symbol, Json::Value &json_result )
 //------------
 /*
 send order (SIGNED)
+POST /api/v3/order
 
-Name			Type		Mandatory	Description
-symbol			STRING		YES	
-side			ENUM		YES	
-type			ENUM		YES	
-timeInForce		ENUM		YES	
-quantity		DECIMAL		YES	
-price			DECIMAL		YES	
+Name				Type		Mandatory	Description
+symbol				STRING		YES	
+side				ENUM		YES	
+type				ENUM		YES	
+timeInForce			ENUM		YES	
+quantity			DECIMAL		YES	
+price				DECIMAL		YES	
 newClientOrderId	STRING		NO		A unique id for the order. Automatically generated by default.
-stopPrice		DECIMAL		NO		Used with STOP orders
-icebergQty		DECIMAL		NO		Used with icebergOrders
-recvWindow		LONG		NO	
-timestamp		LONG		YES	
+stopPrice			DECIMAL		NO		Used with STOP orders
+icebergQty			DECIMAL		NO		Used with icebergOrders
+recvWindow			LONG		NO	
+timestamp			LONG		YES	
 */
 
 void 
@@ -605,6 +872,9 @@ BinaCPP::send_order(
 	const char *timeInForce,
 	double quantity,
 	double price,
+	const char *newClientOrderId,
+	double stopPrice,
+	double icebergQty,
 	long recvWindow,
 	Json::Value &json_result ) 
 {	
@@ -641,9 +911,26 @@ BinaCPP::send_order(
 	post_data.append("&price=");
 	post_data.append( to_string( price) );
 
-	post_data.append("&recvWindow=");
-	post_data.append( to_string( recvWindow) );
-	
+	if ( strlen( newClientOrderId ) > 0 ) {
+		post_data.append("&newClientOrderId=");
+		post_data.append( newClientOrderId );
+	}
+
+	if ( stopPrice > 0.0 ) {
+		post_data.append("&stopPrice=");
+		post_data.append( to_string( stopPrice ) );
+	}
+
+	if ( icebergQty > 0.0 ) {
+		post_data.append("&icebergQty=");
+		post_data.append( to_string( icebergQty ) );
+	}
+
+	if ( recvWindow > 0 ) {
+		post_data.append("&recvWindow=");
+		post_data.append( to_string( recvWindow) );
+	}
+
 
 	post_data.append("&timestamp=");
 	post_data.append( to_string( get_current_ms_epoch() ) );
@@ -687,18 +974,22 @@ BinaCPP::send_order(
 //------------------
 /*
 // get order (SIGNED)
-Name			Type	Mandatory	Description
-symbol			STRING	YES	
-orderId			LONG	NO	
+GET /api/v3/order
+
+Name				Type	Mandatory	Description
+symbol				STRING	YES	
+orderId				LONG	NO	
 origClientOrderId	STRING	NO	
-recvWindow		LONG	NO	
-timestamp		LONG	YES	
+recvWindow			LONG	NO	
+timestamp			LONG	YES	
 */
 
 void 
 BinaCPP::get_order( 
 	const char *symbol, 
 	long orderId,
+	const char *origClientOrderId,
+	long recvWindow,
 	Json::Value &json_result ) 
 {	
 
@@ -711,12 +1002,26 @@ BinaCPP::get_order(
 
 	string url(BINANCE_HOST);
 	url += "/api/v3/order?";
+	string action = "GET";
+	
 
 	string querystring("symbol=");
 	querystring.append( symbol );
 	
-	querystring.append("&orderId=");
-	querystring.append( to_string( orderId ) );
+	if ( orderId > 0 ) {
+		querystring.append("&orderId=");
+		querystring.append( to_string( orderId ) );
+	}
+
+	if ( strlen( origClientOrderId ) > 0 ) {
+		querystring.append("&origClientOrderId=");
+		querystring.append( origClientOrderId );
+	}
+
+	if ( recvWindow > 0 ) {
+		querystring.append("&recvWindow=");
+		querystring.append( to_string( recvWindow) );
+	}
 
 	querystring.append("&timestamp=");
 	querystring.append( to_string( get_current_ms_epoch() ) );
@@ -732,7 +1037,6 @@ BinaCPP::get_order(
 	header_chunk.append( api_key );
 	extra_http_header.push_back(header_chunk);
 
-	string action = "GET";
 	string post_data = "";
 	
 	BinaCPP_logger::write_log( "<BinaCPP::get_order> url = |%s|" , url.c_str() ) ;
@@ -764,6 +1068,108 @@ BinaCPP::get_order(
 
 
 
+
+
+
+
+//------------
+/*
+DELETE /api/v3/order
+cancel order (SIGNED)
+
+symbol				STRING	YES	
+orderId				LONG	NO	
+origClientOrderId	STRING	NO	
+newClientOrderId	STRING	NO	Used to uniquely identify this cancel. Automatically generated by default.
+recvWindow			LONG	NO	
+timestamp			LONG	YES	
+
+*/
+
+void 
+BinaCPP::cancel_order( 
+	const char *symbol, 
+	long orderId,
+	const char *origClientOrderId,
+	const char *newClientOrderId,
+	long recvWindow,
+	Json::Value &json_result ) 
+{	
+
+	BinaCPP_logger::write_log( "<BinaCPP::send_order>" ) ;
+
+	if ( api_key.size() == 0 || secret_key.size() == 0 ) {
+		BinaCPP_logger::write_log( "<BinaCPP::send_order> API Key and Secret Key has not been set." ) ;
+		return ;
+	}
+
+	string url(BINANCE_HOST);
+	url += "/api/v3/order?";
+
+	string action = "DELETE";
+	
+	string post_data("symbol=");
+	post_data.append( symbol );
+
+	if ( orderId > 0 ) {	
+		post_data.append("&orderId=");
+		post_data.append( to_string( orderId ) );
+	}
+
+	if ( strlen( origClientOrderId ) > 0 ) {
+		post_data.append("&origClientOrderId=");
+		post_data.append( origClientOrderId );
+	}
+
+	if ( strlen( newClientOrderId ) > 0 ) {
+		post_data.append("&newClientOrderId=");
+		post_data.append( newClientOrderId );
+	}
+
+	if ( recvWindow > 0 ) {
+		post_data.append("&recvWindow=");
+		post_data.append( to_string( recvWindow) );
+	}
+
+
+	post_data.append("&timestamp=");
+	post_data.append( to_string( get_current_ms_epoch() ) );
+
+
+	string signature =  hmac_sha256( secret_key.c_str(), post_data.c_str() );
+	post_data.append( "&signature=");
+	post_data.append( signature );
+
+
+	vector <string> extra_http_header;
+	string header_chunk("X-MBX-APIKEY: ");
+	header_chunk.append( api_key );
+	extra_http_header.push_back(header_chunk);
+
+	BinaCPP_logger::write_log( "<BinaCPP::send_order> url = |%s|, post_data = |%s|" , url.c_str(), post_data.c_str() ) ;
+	
+	string str_result;
+	curl_api_with_header( url, str_result , extra_http_header, post_data, action ) ;
+
+	if ( str_result.size() > 0 ) {
+		
+		try {
+			Json::Reader reader;
+			json_result.clear();	
+			reader.parse( str_result , json_result );
+	    		
+	    	} catch ( exception &e ) {
+		 	BinaCPP_logger::write_log( "<BinaCPP::send_order> Error ! %s", e.what() ); 
+		}   
+		BinaCPP_logger::write_log( "<BinaCPP::send_order> Done." ) ;
+	
+	} else {
+		BinaCPP_logger::write_log( "<BinaCPP::send_order> Failed to get anything." ) ;
+	}
+	
+	BinaCPP_logger::write_log( "<BinaCPP::send_order> Done.\n" ) ;
+
+}
 
 
 

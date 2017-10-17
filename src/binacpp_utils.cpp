@@ -41,6 +41,22 @@ bool replace_string( string& str, const char *from, const char *to) {
 }
 
 
+//-----------------------
+void string_toupper( string &src) {
+    for ( int i = 0 ; i < src.size() ; i++ ) {
+        src[i] = toupper(src[i]);
+    }
+}
+
+//------------------
+string string_toupper( const char *cstr ) {
+    string ret;
+    for ( int i = 0 ; i < strlen( cstr ) ; i++ ) {
+        ret.push_back( toupper(cstr[i]) );
+    }
+    return ret;
+}
+
 
 //--------------------------------------
 string b2a_hex( char *byte_arr, int n ) {
