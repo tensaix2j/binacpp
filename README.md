@@ -195,140 +195,38 @@ You can refer to the following Makefile to get a better picture...
 
 ### Websockets Endpoints ###
 
-#### Example: Get Candlestick Updates via WebSocket
 
-	int ws_onData( Json::Value &json_result) {
-		cout << json_result << endl;
-	}
-	int main() {
-		BinaCPP_websocket::init( ws_onData ,"/ws/ethbtc@kline_1h" ); 
-	}
-
-#### Example: Get Market Depth via WebSocket
-
-	
-	int ws_onData( Json::Value &json_result) {
-		cout << json_result << endl;
-	}
-
-	int main() {
-		BinaCPP_websocket::init( ws_onData ,"/ws/ethbtc@depth" ); 
-	}
-
-#### Example: Get Trade Updates via WebSocket
-
-	
-
-	int ws_onData( Json::Value &json_result) {
-		cout << json_result << endl;
-	}
-
-	int main() {
-	
-		string api_key 		= API_KEY;
-		string secret_key 	= SECRET_KEY;
-		BinaCPP::init( api_key , secret_key );
-		Json::Value result;
-
-		BinaCPP::start_userDataStream( result );
-		string path("/ws/");
-		path.append( result["listenkey"].asString() );
-		BinaCPP_websocket::init( ws_onData ,path.c_str() ); 
-	}
-
-#### Example: Maintain Market Depth Cache Locally via WebSocket
-
-	map < string, map <double,double> >  depthCache;
-
-.
-
-	void print_depthCache() {
-
-		map < string, map <double,double> >::iterator it_i;
-
-		for ( it_i = depthCache.begin() ; it_i != depthCache.end() ; it_i++ ) {
-				
-			string bid_or_ask = (*it_i).first ;
-			cout << bid_or_ask << endl ;
-			cout << "Price             Qty" << endl ;		
-
-			map <double,double>::reverse_iterator it_j;
-
-			for ( it_j = depthCache[bid_or_ask].rbegin() ; it_j != depthCache[bid_or_ask].rend() ; it_j++ ) {
-
-				double price = (*it_j).first;
-				double qty   = (*it_j).second;
-				printf("%.08f          %.08f\n", price, qty );
-			}
-		}
-	}
-
-.	
+#### Example: Maintain Market Depth Cache Locally via Web Socket
 	
 	
-	int ws_depth_onData( Json::Value &json_result ) {
-		
-		int i;
+[example_depthCache.cpp](https://github.com/tensaix2j/binacpp/blob/master/example/example_depthCache.cpp)
 
-		int new_updateId  	= json_result["u"].asInt();
-		if ( new_updateId > lastUpdateId ) {
-			for ( i = 0 ; i < json_result["b"].size() ; i++ ) {
-				double price = atof( json_result["b"][i][0].asString().c_str());
-				double qty 	 = atof( json_result["b"][i][1].asString().c_str());
-				if ( qty == 0.0 ) {
-					depthCache["bids"].erase(price);
-				} else {
-					depthCache["bids"][price] = qty;
-				}
-			}
-			for ( i = 0 ; i < json_result["a"].size() ; i++ ) {
-				double price = atof( json_result["a"][i][0].asString().c_str());
-				double qty 	 = atof( json_result["a"][i][1].asString().c_str());
-				if ( qty == 0.0 ) {
-					depthCache["asks"].erase(price);
-				} else {
-					depthCache["asks"][price] = qty;
-				}
-			}		
-			lastUpdateId = new_updateId;
-		}
-		print_depthCache();
-	}
+#### Example: KLine/Candlestick Cache and update via Web Socket
+	
 
-.
+[example_klines.cpp](https://github.com/tensaix2j/binacpp/blob/master/example/example_klines.cpp)
 
-	int main() {
-		
-		string api_key 		= API_KEY;
-		string secret_key = SECRET_KEY;
-		BinaCPP::init( api_key , secret_key );
+#### Example: Aggregated Trades and update via Web Socket
+
+[example_aggTrades.cpp](https://github.com/tensaix2j/binacpp/blob/master/example/example_aggTrades.cpp)
 
 
-		// Get Market Depth via http first
-		
-		int i;
-		string symbol = "BNBBTC";
-		BinaCPP::get_depth( symbol.c_str(), 20, result ) ;
-		for ( int i = 0 ; i < result["asks"].size(); i++ ) {
+#### Example: User stream, Order Execution Status and Balance Update via Web Socket
 
-			double price = atof( result["asks"][i][0].asString().c_str() );
-			double qty   = atof( result["asks"][i][1].asString().c_str() );
-			depthCache["asks"][price] = qty;
+[example_userStream.cpp](https://github.com/tensaix2j/binacpp/blob/master/example/example_userStream.cpp)
 
-		}
-		for  ( int i = 0 ; i < result["bids"].size() ; i++ ) {
 
-			double price = atof( result["bids"][i][0].asString().c_str() );
-			double qty   = atof( result["bids"][i][1].asString().c_str() );
-			depthCache["bids"][price] = qty;
-		}
-	 	lastUpdateId = result["lastUpdateId"].asInt();
+#### Example: To subscribe multiple streams at the same time, do something like this
 
-	 	print_depthCache();
-
-	 	// and then update Market Depth via WebSocket
+	BinaCPP_websocket::init();
+ 	
+ 	BinaCPP_websocket::connect_endpoint( ws_aggTrade_OnData ,"/ws/bnbbtc@aggTrade" ); 
+	BinaCPP_websocket::connect_endpoint( ws_userStream_OnData , ws_path.c_str() ); 
+	BinaCPP_websocket::connect_endpoint( ws_klines_onData ,"/ws/bnbbtc@kline_1m" ); 
+	BinaCPP_websocket::connect_endpoint( ws_depth_onData ,"/ws/bnbbtc@depth" ); 
  		
-	 	BinaCPP_websocket::init( ws_depth_onData ,"/ws/bnbbtc@depth" ); 
+	BinaCPP_websocket::enter_event_loop(); 
+
+	
 
 
-	}
