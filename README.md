@@ -243,15 +243,19 @@ You can refer to the following Makefile to get a better picture...
 .
 
 	void print_depthCache() {
-	
+
 		map < string, map <double,double> >::iterator it_i;
+
 		for ( it_i = depthCache.begin() ; it_i != depthCache.end() ; it_i++ ) {
-			string symbol = (*it_i).first ;
-			cout << "Symbol " << symbol << endl ;
+				
+			string bid_or_ask = (*it_i).first ;
+			cout << bid_or_ask << endl ;
 			cout << "Price             Qty" << endl ;		
-			map <double,double>::iterator it_j;
-	
-			for ( it_j = depthCache[symbol].begin() ; it_j != depthCache[symbol].end() ; it_j++ ) {
+
+			map <double,double>::reverse_iterator it_j;
+
+			for ( it_j = depthCache[bid_or_ask].rbegin() ; it_j != depthCache[bid_or_ask].rend() ; it_j++ ) {
+
 				double price = (*it_j).first;
 				double qty   = (*it_j).second;
 				printf("%.08f          %.08f\n", price, qty );
