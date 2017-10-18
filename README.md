@@ -218,6 +218,11 @@ You can refer to the following Makefile to get a better picture...
 
 #### Example: To subscribe multiple streams at the same time, do something like this
 
+	BinaCPP::start_userDataStream(result );
+	string ws_path = string("/ws/");
+	ws_path.append( result["listenKey"].asString() );
+
+
 	BinaCPP_websocket::init();
  	
  	BinaCPP_websocket::connect_endpoint( ws_aggTrade_OnData ,"/ws/bnbbtc@aggTrade" ); 
