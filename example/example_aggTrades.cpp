@@ -23,10 +23,10 @@ void print_aggTradeCache() {
 	
 	for ( it_i = aggTradeCache.begin() ; it_i != aggTradeCache.end() ; it_i++ ) {
 
-		long timestamp 			= (*it_i).first;
+		long aggTradeId 		 = (*it_i).first;
 		map <string,double> aggtrade_obj = (*it_i).second;
 
-		cout << "T:" << timestamp << ", ";
+		cout << "AggtradeId:" << aggTradeId << ", ";
 		printf("p: %.08f, ", aggtrade_obj["p"] );
 		printf("q: %.08f " , aggtrade_obj["q"] );
 		cout << " " << endl;
@@ -40,9 +40,9 @@ void print_aggTradeCache() {
 int ws_aggTrade_OnData( Json::Value &json_result ) {
 
 
-	long timestamp = json_result["T"].asInt64();
-	aggTradeCache[timestamp]["p"] = atof( json_result["p"].asString().c_str() );
-	aggTradeCache[timestamp]["q"] = atof( json_result["q"].asString().c_str() );
+	long aggTradeId = json_result["a"].asInt64();
+	aggTradeCache[aggTradeId]["p"] = atof( json_result["p"].asString().c_str() );
+	aggTradeCache[aggTradeId]["q"] = atof( json_result["q"].asString().c_str() );
 		
 	print_aggTradeCache();
 }
@@ -63,10 +63,11 @@ int main() {
 	
 	//  AggTrades 
 	BinaCPP::get_aggTrades( "BNBBTC", 0, 0, 0, 10, result ); 
+
 	for ( int i = 0 ; i < result.size() ; i++ ) {
-		long timestamp = result[i]["T"].asInt64();
- 		aggTradeCache[timestamp]["p"] =  atof( result[i]["p"].asString().c_str() );
- 		aggTradeCache[timestamp]["q"] =  atof( result[i]["q"].asString().c_str() );
+		long aggTradeId = result[i]["a"].asInt64();
+ 		aggTradeCache[aggTradeId]["p"] =  atof( result[i]["p"].asString().c_str() );
+ 		aggTradeCache[aggTradeId]["q"] =  atof( result[i]["q"].asString().c_str() );
  	}
 	print_aggTradeCache();
 

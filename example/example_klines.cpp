@@ -71,7 +71,7 @@ int main() {
 	long recvWindow = 10000;	
 	
 	// Klines/CandleStick
- 	BinaCPP::get_klines( "ETHBTC", "1h", 10 , 0, 0, result );
+ 	BinaCPP::get_klines( "BNBBTC", "1h", 10 , 0, 0, result );
  	for ( int i = 0 ; i < result.size() ; i++ ) {
  		long start_of_candle = result[i][0].asInt64();
  		klinesCache[start_of_candle]["o"] = atof( result[i][1].asString().c_str() );
