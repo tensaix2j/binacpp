@@ -12,9 +12,8 @@
 
 
 //-----------------------------
-int onTick( Json::Value &json_result) {
+int ws_klines_onData( Json::Value &json_result) {
 
-	cout << "<onTick>" << endl;
 	cout << json_result << endl;
 
 }
@@ -26,8 +25,11 @@ int main() {
 	string secret_key = SECRET_KEY;
 
 	BinaCPP::init( api_key, secret_key ) ;
-	BinaCPP_websocket::init( onTick ,"/ws/ethbtc@kline_1m" ); 
-
+	
+	BinaCPP_websocket::init();
+ 	BinaCPP_websocket::connect_endpoint( ws_klines_onData ,"/ws/bnbbtc@kline_1m" ); 
+	BinaCPP_websocket::enter_event_loop(); 
+	
 	return 0;
 
 }
