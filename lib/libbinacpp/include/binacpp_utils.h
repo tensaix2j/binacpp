@@ -3,6 +3,7 @@
 #ifndef BINACPP_UTILS
 #define BINACPP_UTILS
 
+#include <unistd.h>
 #include <string>
 #include <sstream>
 #include <vector>
