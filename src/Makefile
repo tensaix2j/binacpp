@@ -56,7 +56,8 @@ $(build_dir)/jsoncpp.o: $(jsoncpp_src)/jsoncpp.cpp
 
 clean:
 	rm $(build_dir)/*.o
-	rm $(build_dir)/binawatch
+	rm $(build_dir)/*.so
+
 
 
 
