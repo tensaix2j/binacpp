@@ -24,7 +24,7 @@
 
 
 
-#define BINANCE_HOST "https://www.binance.com"
+#define BINANCE_HOST "https://api.binance.com"
 
 
 using namespace std;
@@ -121,6 +121,37 @@ class BinaCPP {
 		static void keep_userDataStream( const char *listenKey  );
 		static void close_userDataStream( const char *listenKey );
 
+
+		// WAPI
+		static void withdraw( 
+			const char *asset,
+			const char *address,
+			const char *addressTag,
+			double amount, 
+			const char *name,
+			long recvWindow,
+			Json::Value &json_result );
+
+		static void get_depositHistory( 
+			const char *asset,
+			int  status,
+			long startTime,
+			long endTime, 
+			long recvWindow,
+			Json::Value &json_result );
+
+		static void get_withdrawHistory( 
+			const char *asset,
+			int  status,
+			long startTime,
+			long endTime, 
+			long recvWindow,
+			Json::Value &json_result ); 
+
+		static void get_depositAddress( 
+			const char *asset,
+			long recvWindow,
+			Json::Value &json_result );
 
 
 };
