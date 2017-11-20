@@ -28,7 +28,7 @@ libbinacpp_lib=${libbinacpp_dir}/lib
 	-L$(libcurl_lib) \
 	-L$(libwebsockets_lib) \
 	-L$(libbinacpp_lib) \
-	-lcurl -lcrypto -lwebsockets -lbinacpp -o $@
+	-lcurl -ljsoncpp  -lcrypto -lwebsockets -lbinacpp -o $@
 
 	cat run.template.sh  | sed s/%executable%/$@/ > $@.run.sh
 	chmod 755 $@.run.sh
