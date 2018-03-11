@@ -43,19 +43,7 @@ class BinaCPP {
 
 	public:
 
-		template<typename T> static std::string to_string(T val)
-		{
-			return to_string(val);
-		}
-
-		static std::string to_string(double val)
-		{
-			std::ostringstream out;
-			out.precision(8);
-			out.setf(std::ios_base::fixed);
-			out << val;
-			return out.str();
-		}
+		
 
 		static void curl_api( string &url, string &result_json );
 		static void curl_api_with_header( string &url, string &result_json , vector <string> &extra_http_header, string &post_data, string &action );

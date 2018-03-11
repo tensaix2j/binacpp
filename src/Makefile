@@ -35,7 +35,7 @@ $(build_dir)/libbinacpp.so: $(objects)
 
 
 $(build_dir)/binacpp.o: binacpp.cpp binacpp.h 
-	g++ -I$(jsoncpp_include) -c binacpp.cpp  -fPIC   -o $(build_dir)/binacpp.o 
+	g++ -I$(libcurl_include) -I$(jsoncpp_include) -c binacpp.cpp  -fPIC   -o $(build_dir)/binacpp.o 
 
 
 $(build_dir)/binacpp_websocket.o: binacpp_websocket.cpp binacpp_websocket.h 

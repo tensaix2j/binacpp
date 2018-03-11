@@ -11,7 +11,7 @@
 #include <sys/time.h>
 #include <openssl/hmac.h>
 #include <openssl/sha.h>
-
+#include <iostream>
 using namespace std;
 
 void split_string( string &s, char delim, vector <string> &result);
@@ -31,6 +31,18 @@ inline string to_string (const T& t)
     ss << t;
     return ss.str();
 }
+
+
+static std::string to_string(double val)
+{
+	std::ostringstream out;
+	out.precision(8);
+	out.setf(std::ios_base::fixed);
+	out << val;
+	return out.str();
+}
+
+
 
 //--------------------
 inline bool file_exists (const std::string& name) {
