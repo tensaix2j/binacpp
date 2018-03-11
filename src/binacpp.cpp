@@ -216,7 +216,7 @@ BinaCPP::get_depth(
 	string querystring("symbol=");
 	querystring.append( symbol );
 	querystring.append("&limit=");
-	querystring.append( toString( limit ) );
+	querystring.append( to_string( limit ) );
 
 	url.append( querystring );
 	BinaCPP_logger::write_log( "<BinaCPP::get_depth> url = |%s|" , url.c_str() ) ;
@@ -284,17 +284,17 @@ BinaCPP::get_aggTrades(
 	if ( startTime != 0 && endTime != 0 ) {
 
 		querystring.append("&startTime=");
-		querystring.append( toString( startTime ) );
+		querystring.append( to_string( startTime ) );
 
 		querystring.append("&endTime=");
-		querystring.append( toString( endTime ) );
+		querystring.append( to_string( endTime ) );
 	
 	} else {
 		querystring.append("&fromId=");
-		querystring.append( toString( fromId ) );
+		querystring.append( to_string( fromId ) );
 
 		querystring.append("&limit=");
-		querystring.append( toString( limit ) );
+		querystring.append( to_string( limit ) );
 	}
 
 	url.append( querystring );
@@ -414,14 +414,14 @@ BinaCPP::get_klines(
 	if ( startTime > 0 && endTime > 0 ) {
 
 		querystring.append("&startTime=");
-		querystring.append( toString( startTime ) );
+		querystring.append( to_string( startTime ) );
 
 		querystring.append("&endTime=");
-		querystring.append( toString( endTime ) );
+		querystring.append( to_string( endTime ) );
 	
 	} else if ( limit > 0 ) {
 		querystring.append("&limit=");
-		querystring.append( toString( limit ) );
+		querystring.append( to_string( limit ) );
 	}
 
 	
@@ -491,11 +491,11 @@ BinaCPP::get_account( long recvWindow,  Json::Value &json_result )
 	
 
 	string querystring("timestamp=");
-	querystring.append( toString( get_current_ms_epoch() ) );
+	querystring.append( to_string( get_current_ms_epoch() ) );
 
 	if ( recvWindow > 0 ) {
 		querystring.append("&recvWindow=");
-		querystring.append( toString( recvWindow ) );
+		querystring.append( to_string( recvWindow ) );
 	}
 
 	string signature =  hmac_sha256( secret_key.c_str() , querystring.c_str() );
@@ -582,21 +582,21 @@ BinaCPP::get_myTrades(
 
 	if ( limit > 0 ) {
 		querystring.append("&limit=");
-		querystring.append( toString( limit ) );
+		querystring.append( to_string( limit ) );
 	}
 
 	if ( fromId > 0 ) {
 		querystring.append("&fromId=");
-		querystring.append( toString( fromId ) );
+		querystring.append( to_string( fromId ) );
 	}
 
 	if ( recvWindow > 0 ) {
 		querystring.append("&recvWindow=");
-		querystring.append( toString( recvWindow ) );
+		querystring.append( to_string( recvWindow ) );
 	}
 
 	querystring.append("&timestamp=");
-	querystring.append( toString( get_current_ms_epoch() ) );
+	querystring.append( to_string( get_current_ms_epoch() ) );
 
 	string signature =  hmac_sha256( secret_key.c_str() , querystring.c_str() );
 	querystring.append( "&signature=");
@@ -682,12 +682,12 @@ BinaCPP::get_openOrders(
 
 	if ( recvWindow > 0 ) {
 		querystring.append("&recvWindow=");
-		querystring.append( toString( recvWindow) );
+		querystring.append( to_string( recvWindow) );
 	}
 
 
 	querystring.append("&timestamp=");
-	querystring.append( toString( get_current_ms_epoch() ) );
+	querystring.append( to_string( get_current_ms_epoch() ) );
 
 
 	string signature =  hmac_sha256( secret_key.c_str(), querystring.c_str() );
@@ -786,22 +786,22 @@ BinaCPP::get_allOrders(
 
 	if ( orderId > 0 ) {
 		querystring.append("&orderId=");
-		querystring.append( toString( orderId ) );
+		querystring.append( to_string( orderId ) );
 	}
 
 	if ( limit > 0 ) {
 		querystring.append("&limit=");
-		querystring.append( toString( limit ) );
+		querystring.append( to_string( limit ) );
 	}
 
 	if ( recvWindow > 0 ) {
 		querystring.append("&recvWindow=");
-		querystring.append( toString( recvWindow ) );
+		querystring.append( to_string( recvWindow ) );
 	}
 
 
 	querystring.append("&timestamp=");
-	querystring.append( toString( get_current_ms_epoch() ) );
+	querystring.append( to_string( get_current_ms_epoch() ) );
 
 	string signature =  hmac_sha256( secret_key.c_str(), querystring.c_str() );
 	querystring.append( "&signature=");
@@ -906,10 +906,10 @@ BinaCPP::send_order(
 
 
 	post_data.append("&quantity=");
-	post_data.append( toString( quantity) );
+	post_data.append( to_string( quantity) );
 
 	post_data.append("&price=");
-	post_data.append( toString( price) );
+	post_data.append( to_string( price) );
 
 	if ( strlen( newClientOrderId ) > 0 ) {
 		post_data.append("&newClientOrderId=");
@@ -918,22 +918,22 @@ BinaCPP::send_order(
 
 	if ( stopPrice > 0.0 ) {
 		post_data.append("&stopPrice=");
-		post_data.append( toString( stopPrice ) );
+		post_data.append( to_string( stopPrice ) );
 	}
 
 	if ( icebergQty > 0.0 ) {
 		post_data.append("&icebergQty=");
-		post_data.append( toString( icebergQty ) );
+		post_data.append( to_string( icebergQty ) );
 	}
 
 	if ( recvWindow > 0 ) {
 		post_data.append("&recvWindow=");
-		post_data.append( toString( recvWindow) );
+		post_data.append( to_string( recvWindow) );
 	}
 
 
 	post_data.append("&timestamp=");
-	post_data.append( toString( get_current_ms_epoch() ) );
+	post_data.append( to_string( get_current_ms_epoch() ) );
 
 	string signature =  hmac_sha256( secret_key.c_str(), post_data.c_str() );
 	post_data.append( "&signature=");
@@ -1010,7 +1010,7 @@ BinaCPP::get_order(
 	
 	if ( orderId > 0 ) {
 		querystring.append("&orderId=");
-		querystring.append( toString( orderId ) );
+		querystring.append( to_string( orderId ) );
 	}
 
 	if ( strlen( origClientOrderId ) > 0 ) {
@@ -1020,11 +1020,11 @@ BinaCPP::get_order(
 
 	if ( recvWindow > 0 ) {
 		querystring.append("&recvWindow=");
-		querystring.append( toString( recvWindow) );
+		querystring.append( to_string( recvWindow) );
 	}
 
 	querystring.append("&timestamp=");
-	querystring.append( toString( get_current_ms_epoch() ) );
+	querystring.append( to_string( get_current_ms_epoch() ) );
 
 	string signature =  hmac_sha256( secret_key.c_str(), querystring.c_str() );
 	querystring.append( "&signature=");
@@ -1113,7 +1113,7 @@ BinaCPP::cancel_order(
 
 	if ( orderId > 0 ) {	
 		post_data.append("&orderId=");
-		post_data.append( toString( orderId ) );
+		post_data.append( to_string( orderId ) );
 	}
 
 	if ( strlen( origClientOrderId ) > 0 ) {
@@ -1128,12 +1128,12 @@ BinaCPP::cancel_order(
 
 	if ( recvWindow > 0 ) {
 		post_data.append("&recvWindow=");
-		post_data.append( toString( recvWindow) );
+		post_data.append( to_string( recvWindow) );
 	}
 
 
 	post_data.append("&timestamp=");
-	post_data.append( toString( get_current_ms_epoch() ) );
+	post_data.append( to_string( get_current_ms_epoch() ) );
 
 
 	string signature =  hmac_sha256( secret_key.c_str(), post_data.c_str() );
@@ -1381,7 +1381,7 @@ BinaCPP::withdraw(
 	}
 
 	post_data.append( "&amount=");
-	post_data.append( toString( amount ));	
+	post_data.append( to_string( amount ));	
 
 	if ( strlen( name ) > 0 ) {
 		post_data.append("&name=");
@@ -1390,11 +1390,11 @@ BinaCPP::withdraw(
 
 	if ( recvWindow > 0 ) {
 		post_data.append("&recvWindow=");
-		post_data.append( toString( recvWindow) );
+		post_data.append( to_string( recvWindow) );
 	}
 
 	post_data.append("&timestamp=");
-	post_data.append( toString( get_current_ms_epoch() ) );
+	post_data.append( to_string( get_current_ms_epoch() ) );
 
 	string signature =  hmac_sha256( secret_key.c_str(), post_data.c_str() );
 	post_data.append( "&signature=");
@@ -1478,26 +1478,26 @@ BinaCPP::get_depositHistory(
 
 	if ( status > 0 ) {
 		querystring.append("&status=");
-		querystring.append( toString( status ) );
+		querystring.append( to_string( status ) );
 	}
 
 	if ( startTime > 0 ) {
 		querystring.append("&startTime=");
-		querystring.append( toString( startTime ) );
+		querystring.append( to_string( startTime ) );
 	}
 
 	if ( endTime > 0 ) {
 		querystring.append("&endTime=");
-		querystring.append( toString( endTime ) );
+		querystring.append( to_string( endTime ) );
 	}
 
 	if ( recvWindow > 0 ) {
 		querystring.append("&recvWindow=");
-		querystring.append( toString( recvWindow) );
+		querystring.append( to_string( recvWindow) );
 	}
 
 	querystring.append("&timestamp=");
-	querystring.append( toString( get_current_ms_epoch() ) );
+	querystring.append( to_string( get_current_ms_epoch() ) );
 
 	string signature =  hmac_sha256( secret_key.c_str(), querystring.c_str() );
 	querystring.append( "&signature=");
@@ -1593,26 +1593,26 @@ BinaCPP::get_withdrawHistory(
 
 	if ( status > 0 ) {
 		querystring.append("&status=");
-		querystring.append( toString( status ) );
+		querystring.append( to_string( status ) );
 	}
 
 	if ( startTime > 0 ) {
 		querystring.append("&startTime=");
-		querystring.append( toString( startTime ) );
+		querystring.append( to_string( startTime ) );
 	}
 
 	if ( endTime > 0 ) {
 		querystring.append("&endTime=");
-		querystring.append( toString( endTime ) );
+		querystring.append( to_string( endTime ) );
 	}
 
 	if ( recvWindow > 0 ) {
 		querystring.append("&recvWindow=");
-		querystring.append( toString( recvWindow) );
+		querystring.append( to_string( recvWindow) );
 	}
 
 	querystring.append("&timestamp=");
-	querystring.append( toString( get_current_ms_epoch() ) );
+	querystring.append( to_string( get_current_ms_epoch() ) );
 
 	string signature =  hmac_sha256( secret_key.c_str(), querystring.c_str() );
 	querystring.append( "&signature=");
@@ -1695,11 +1695,11 @@ BinaCPP::get_depositAddress(
 	
 	if ( recvWindow > 0 ) {
 		querystring.append("&recvWindow=");
-		querystring.append( toString( recvWindow) );
+		querystring.append( to_string( recvWindow) );
 	}
 
 	querystring.append("&timestamp=");
-	querystring.append( toString( get_current_ms_epoch() ) );
+	querystring.append( to_string( get_current_ms_epoch() ) );
 
 	string signature =  hmac_sha256( secret_key.c_str(), querystring.c_str() );
 	querystring.append( "&signature=");

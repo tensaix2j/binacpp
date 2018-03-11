@@ -25,13 +25,22 @@ unsigned long get_current_ms_epoch();
 
 //--------------------
 template <class T>
-inline string toString (const T& t)
+inline string to_string (const T& t)
 {
     stringstream ss;
     ss << t;
     return ss.str();
 }
 
+
+static std::string to_string(double val)
+{
+	std::ostringstream out;
+	out.precision(8);
+	out.setf(std::ios_base::fixed);
+	out << val;
+	return out.str();
+}
 
 
 
