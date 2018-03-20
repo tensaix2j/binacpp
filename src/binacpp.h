@@ -37,7 +37,7 @@ class BinaCPP {
 
 	static string api_key;
 	static string secret_key;
-
+	static CURL* curl;
 
 	
 
@@ -50,6 +50,7 @@ class BinaCPP {
 		static size_t curl_cb( void *content, size_t size, size_t nmemb, string *buffer ) ;
 		
 		static void init( string &api_key, string &secret_key);
+		static void cleanup();
 
 
 		// Public API
