@@ -20,6 +20,7 @@
 
 string BinaCPP::api_key = "";
 string BinaCPP::secret_key = "";
+CURL* BinaCPP::curl = NULL;
 
 
 
@@ -28,11 +29,19 @@ string BinaCPP::secret_key = "";
 void 
 BinaCPP::init( string &api_key, string &secret_key ) 
 {
+	curl_global_init(CURL_GLOBAL_DEFAULT);
+	BinaCPP::curl = curl_easy_init();
 	BinaCPP::api_key = api_key;
 	BinaCPP::secret_key = secret_key;
 }
 
 
+void
+BinaCPP::cleanup()
+{
+	curl_easy_cleanup(BinaCPP::curl);
+	curl_global_cleanup();
+}
 
 
 //------------------
@@ -1756,17 +1765,8 @@ BinaCPP::curl_cb( void *content, size_t size, size_t nmemb, std::string *buffer 
 {	
 	BinaCPP_logger::write_log( "<BinaCPP::curl_cb> " ) ;
 
-	size_t newLength = size*nmemb;
-	size_t oldLength = buffer->size();
-	try {
-		buffer->resize(oldLength + newLength);
-	
-	} catch(std::bad_alloc &e) {
-		//handle memory problem
-		return 0;
-	}
+	buffer->append((char*)content, size*nmemb);
 
-	std::copy((char*)content,(char*)content + newLength,buffer->begin()+oldLength);
 	BinaCPP_logger::write_log( "<BinaCPP::curl_cb> done" ) ;
 	return size*nmemb;
 }
@@ -1792,21 +1792,18 @@ BinaCPP::curl_api( string &url, string &result_json ) {
 void 
 BinaCPP::curl_api_with_header( string &url, string &str_result, vector <string> &extra_http_header , string &post_data , string &action ) 
 {
+
 	BinaCPP_logger::write_log( "<BinaCPP::curl_api>" ) ;
 
-	CURL *curl;
 	CURLcode res;
-	
-	curl_global_init(CURL_GLOBAL_DEFAULT);
 
-	curl = curl_easy_init();
-	
-	if( curl ) { 
+	if( BinaCPP::curl ) {
 
-		curl_easy_setopt(curl, CURLOPT_URL, url.c_str() );
-		curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, BinaCPP::curl_cb);
-		curl_easy_setopt(curl, CURLOPT_WRITEDATA, &str_result );
-		curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, false);
+		curl_easy_setopt(BinaCPP::curl, CURLOPT_URL, url.c_str() );
+		curl_easy_setopt(BinaCPP::curl, CURLOPT_WRITEFUNCTION, BinaCPP::curl_cb);
+		curl_easy_setopt(BinaCPP::curl, CURLOPT_WRITEDATA, &str_result );
+		curl_easy_setopt(BinaCPP::curl, CURLOPT_SSL_VERIFYPEER, false);
+		curl_easy_setopt(BinaCPP::curl, CURLOPT_ENCODING, "gzip");
 
 		if ( extra_http_header.size() > 0 ) {
 			
@@ -1814,27 +1811,25 @@ BinaCPP::curl_api_with_header( string &url, string &str_result, vector <string> 
 			for ( int i = 0 ; i < extra_http_header.size() ;i++ ) {
 				chunk = curl_slist_append(chunk, extra_http_header[i].c_str() );
 			}
- 			curl_easy_setopt(curl, CURLOPT_HTTPHEADER, chunk);
+			curl_easy_setopt(BinaCPP::curl, CURLOPT_HTTPHEADER, chunk);
+		}
+
+		if ( post_data.size() > 0 || action == "POST" || action == "PUT" || action == "DELETE" ) {
+
+			if ( action == "PUT" || action == "DELETE" ) {
+				curl_easy_setopt(BinaCPP::curl, CURLOPT_CUSTOMREQUEST, action.c_str() );
+			}
+			curl_easy_setopt(BinaCPP::curl, CURLOPT_POSTFIELDS, post_data.c_str() );
  		}
 
- 		if ( post_data.size() > 0 || action == "POST" || action == "PUT" || action == "DELETE" ) {
-
- 			if ( action == "PUT" || action == "DELETE" ) {
- 				curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, action.c_str() );
- 			}
- 			curl_easy_setopt(curl, CURLOPT_POSTFIELDS, post_data.c_str() );
- 		}
-
-		res = curl_easy_perform(curl);
+		res = curl_easy_perform(BinaCPP::curl);
 
 		/* Check for errors */ 
 		if ( res != CURLE_OK ) {
 			BinaCPP_logger::write_log( "<BinaCPP::curl_api> curl_easy_perform() failed: %s" , curl_easy_strerror(res) ) ;
 		} 	
-		/* always cleanup */ 
-		curl_easy_cleanup(curl);
+
 	}
-	curl_global_cleanup();
 
 	BinaCPP_logger::write_log( "<BinaCPP::curl_api> done" ) ;
 
