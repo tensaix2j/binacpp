@@ -89,7 +89,7 @@ BinaCPP::get_allPrices( Json::Value &json_result )
 	BinaCPP_logger::write_log( "<BinaCPP::get_allPrices>" ) ;
 
 	string url(BINANCE_HOST);  
-	url += "/api/v1/ticker/allPrices";
+	url += "/api/v3/ticker/price";
 
 	string str_result;
 	curl_api( url, str_result ) ;
@@ -120,17 +120,27 @@ BinaCPP::get_price( const char *symbol )
 	BinaCPP_logger::write_log( "<BinaCPP::get_price>" ) ;
 
 	double ret = 0.0;
-	Json::Value alltickers;
 	string str_symbol = string_toupper(symbol);
-	get_allPrices( alltickers );
+	string url(BINANCE_HOST);  
+	url += "/api/v3/ticker/price?symbol="+str_symbol;
 
-	for ( int i = 0 ; i < alltickers.size() ; i++ ) {
-		if ( alltickers[i]["symbol"].asString() == str_symbol ) {
-			ret = atof( alltickers[i]["price"].asString().c_str() );
-			break;
-		}
-		
-	}	
+	string str_result;
+	curl_api( url, str_result );
+
+	if ( str_result.size() > 0 ) {
+		try {
+			Json::Reader reader;
+			Json::Value json_result;	
+			reader.parse( str_result , json_result );
+	    	ret = aof ( json_result["price"].asString().c_str() );
+		} catch ( exception &e ) {
+		 	BinaCPP_logger::write_log( "<BinaCPP::get_price> Error ! %s", e.what() ); 
+		}   
+		BinaCPP_logger::write_log( "<BinaCPP::get_price> Done." ) ;
+	
+	} else {
+		BinaCPP_logger::write_log( "<BinaCPP::get_price> Failed to get anything." ) ;
+	}
 	return ret;
 }
 
