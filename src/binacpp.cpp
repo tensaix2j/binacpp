@@ -132,7 +132,7 @@ BinaCPP::get_price( const char *symbol )
 			Json::Reader reader;
 			Json::Value json_result;	
 			reader.parse( str_result , json_result );
-	    	ret = aof ( json_result["price"].asString().c_str() );
+	    	ret = atof ( json_result["price"].asString().c_str() );
 		} catch ( exception &e ) {
 		 	BinaCPP_logger::write_log( "<BinaCPP::get_price> Error ! %s", e.what() ); 
 		}   
