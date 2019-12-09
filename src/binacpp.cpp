@@ -1193,6 +1193,75 @@ BinaCPP::cancel_order(
 
 
 
+/*
+-GET /api/v3/historicalTrades
+Get older trades.
+
+Parameters:
+
+Name 		Type 	Mandatory 	Description
+symbol		STRING	YES
+limit 		INT 	NO			Default 500; max 1000.
+fromId		LONG 	NO			TradeId to fetch from. Default gets most recent trades.
+*/
+
+void
+BinaCPP::get_historicalTrades(
+	const char *symbol,
+	int limit,
+	long fromId,
+	Json::Value &json_result )
+{
+	BinaCPP_logger::write_log( "<BinaCPP::get_historicalTrades>" );
+
+	if ( api_key.size() == 0 ) {
+		BinaCPP_logger::write_log( "<BinaCPP::get_historicalTrades> API Key has not been set." ) ;
+		return ;
+	}
+
+	string url(BINANCE_HOST);
+	url += "/api/v3/historicalTrades?";
+
+	string querystring( "symbol=" );
+	querystring.append( symbol );
+
+	if( limit > 0 ) {
+		querystring.append( "&limit=" );
+		querystring.append( to_string( limit ) );
+	}
+
+	if( fromId >= 0 ) {
+		querystring.append( "&fromId=" );
+		querystring.append( to_string( fromId ) );
+	}
+
+	url.append( querystring );
+
+	vector <string> extra_http_header;
+	string header_chunk("X-MBX-APIKEY: ");
+	header_chunk.append( api_key );
+	extra_http_header.push_back(header_chunk);
+
+	string action = "GET";
+	string post_data = "";
+
+	string str_result;
+	curl_api_with_header( url, str_result , extra_http_header , post_data , action ) ;
+
+	if( str_result.size() > 0 ) {
+		try {
+			Json::Reader reader;
+				json_result.clear();
+			reader.parse( str_result, json_result );
+		} catch( exception &e ) {
+			BinaCPP_logger::write_log( "<BinaCPP::get_historicalTrades> Error ! %s", e.what() );
+		}
+		BinaCPP_logger::write_log( "<BinaCPP::get_historicalTrades> Done." );
+	} else {
+		BinaCPP_logger::write_log( "<BinaCPP::get_historicalTrades> Failed to get anything." );
+	}
+}
+
 
 //--------------------
 //Start user data stream (API-KEY)
