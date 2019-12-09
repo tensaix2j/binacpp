@@ -127,6 +127,7 @@ class BinaCPP {
 		);
 
 		// API key required
+		static void get_historicalTrades( const char *symbol, int limit, long fromId, Json::Value &json_result );
 		static void start_userDataStream( Json::Value &json_result );
 		static void keep_userDataStream( const char *listenKey  );
 		static void close_userDataStream( const char *listenKey );
